@@ -1,25 +1,35 @@
 {
   "expo": {
-    "name": "frontend",
-    "slug": "frontend",
+    "name": "Taskly",
+    "slug": "taskly",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "automatic",
+    "scheme": "taskly",
     "ios": {
       "supportsTablet": true
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/android-icon-foreground.png",
-        "backgroundImage": "./assets/android-icon-background.png",
-        "monochromeImage": "./assets/android-icon-monochrome.png"
+        "backgroundColor": "#2563eb",
+        "foregroundImage": "./assets/adaptive-icon.png"
       },
-      "predictiveBackGestureEnabled": false
+      "package": "com.taskly.app"
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-status-bar",
+        { "style": "auto" }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
     }
   }
 }
