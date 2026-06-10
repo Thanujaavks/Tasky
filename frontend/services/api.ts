@@ -1,6 +1,22 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Constants from 'expo-constants';
 
-const BASE_URL = 'http://192.168.1.100:5000/api'; // Update to your machine's IP
+const getApiBaseUrl = () => {
+  if (process.env.EXPO_PUBLIC_API_URL) {
+    return process.env.EXPO_PUBLIC_API_URL;
+  }
+
+  const hostUri =
+    Constants.expoConfig?.hostUri ??
+    Constants.expoGoConfig?.debuggerHost ??
+    Constants.manifest2?.extra?.expoClient?.hostUri;
+  const host = hostUri?.split(':')[0];
+
+  return `http://${host || 'localhost'}:5000/api`;
+};
+
+const BASE_URL = getApiBaseUrl();
+const REQUEST_TIMEOUT_MS = 15000;
 
 const getHeaders = async () => {
   const token = await AsyncStorage.getItem('token');
@@ -12,12 +28,27 @@ const getHeaders = async () => {
 
 const request = async (method: string, path: string, body?: object) => {
   const headers = await getHeaders();
-  const res = await fetch(`${BASE_URL}${path}`, {
-    method,
-    headers,
-    ...(body ? { body: JSON.stringify(body) } : {}),
-  });
-  const data = await res.json();
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+
+  let res: Response;
+  try {
+    res = await fetch(`${BASE_URL}${path}`, {
+      method,
+      headers,
+      signal: controller.signal,
+      ...(body ? { body: JSON.stringify(body) } : {}),
+    });
+  } catch (error: any) {
+    if (error.name === 'AbortError') {
+      throw new Error(`Could not reach API at ${BASE_URL}. Check that the backend is running and reachable from your device.`);
+    }
+    throw new Error(`Network request failed. Check that the backend is running at ${BASE_URL}.`);
+  } finally {
+    clearTimeout(timeout);
+  }
+
+  const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(data.message || 'Request failed');
   return data;
 };

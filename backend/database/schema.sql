@@ -54,13 +54,13 @@ CREATE INDEX idx_task_comments_task_id ON task_comments(task_id);
 
 -- Seed data: Default admin account (password: Admin@123)
 INSERT INTO users (name, email, password, role, department) VALUES
-('System Admin', 'admin@taskly.com', '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj2NkBdFjCKq', 'admin', 'Management');
+('System Admin', 'admin@taskly.com', '$2a$12$Q2nReO.G.8EAJKJP1rjA5.IaRAkrJCzUXO4VXIXy3AS5JzDIcyU22', 'admin', 'Management');
 
 -- Seed data: Sample employees (password: Employee@123)
 INSERT INTO users (name, email, password, role, department, phone) VALUES
-('Alice Johnson', 'alice@taskly.com', '$2a$12$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'employee', 'Engineering', '+1-555-0101'),
-('Bob Smith', 'bob@taskly.com', '$2a$12$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'employee', 'Design', '+1-555-0102'),
-('Carol White', 'carol@taskly.com', '$2a$12$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'employee', 'Marketing', '+1-555-0103');
+('Alice Johnson', 'alice@taskly.com', '$2a$12$i2X/VNMjy/4j.0jfUwgazOR/2N/nZpwfhiC9uYVrHWDYd.dahj2C.', 'employee', 'Engineering', '+1-555-0101'),
+('Bob Smith', 'bob@taskly.com', '$2a$12$i2X/VNMjy/4j.0jfUwgazOR/2N/nZpwfhiC9uYVrHWDYd.dahj2C.', 'employee', 'Design', '+1-555-0102'),
+('Carol White', 'carol@taskly.com', '$2a$12$i2X/VNMjy/4j.0jfUwgazOR/2N/nZpwfhiC9uYVrHWDYd.dahj2C.', 'employee', 'Marketing', '+1-555-0103');
 
 -- Seed data: Sample tasks
 INSERT INTO tasks (title, description, priority, status, due_date, assigned_to, created_by) VALUES

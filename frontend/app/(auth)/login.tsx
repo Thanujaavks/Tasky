@@ -93,7 +93,7 @@ export default function Login() {
             placeholder="Your password"
             value={password}
             onChangeText={setPassword}
-            secureTextEntry={!showPassword}
+            // secureTextEntry={!showPassword}
             error={errors.password}
             leftIcon={<Text className="text-lg">🔒</Text>}
             rightIcon={
