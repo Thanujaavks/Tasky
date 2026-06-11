@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="ccc24051-6972-484c-aa02-83b447283734" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/frontend/app/(admin)/_layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/app/(admin)/_layout.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/app/(admin)/dashboard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/app/(admin)/dashboard.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/app/(admin)/employees/[id].tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/app/(admin)/employees/[id].tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/app/(admin)/employees/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/app/(admin)/employees/index.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/app/(admin)/tasks/[id].tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/app/(admin)/tasks/[id].tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/app/(admin)/tasks/create.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/app/(admin)/tasks/create.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/app/(admin)/tasks/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/app/(admin)/tasks/index.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/app/(auth)/login.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/app/(auth)/login.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/app/(employee)/_layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/app/(employee)/_layout.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/app/(employee)/dashboard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/app/(employee)/dashboard.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/app/(employee)/profile.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/app/(employee)/profile.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/app/(employee)/tasks/[id].tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/app/(employee)/tasks/[id].tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/app/(employee)/tasks/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/app/(employee)/tasks/index.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/app/_layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/app/_layout.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/app/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/app/index.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/package.json" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="CopilotPersistence">
+    <persistenceIdMap>
+      <entry key="_D:/Taskly" value="3EtsYuzZxeRvCEuw2NqEjVs1shU" />
+    </persistenceIdMap>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="ui-change" />
+      </map>
+    </option>
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;Thanujaavks&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/Thanujaavks/Tasky.git&quot;,
+    &quot;accountId&quot;: &quot;9139a90e-7266-4cc4-b276-92fc18433827&quot;
+  }
+}</component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 3,
+  &quot;fromUser&quot;: false
+}</component>
+  <component name="ProjectId" id="3EtsYuzZxeRvCEuw2NqEjVs1shU" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
+    "git-widget-placeholder": "dev",
+    "ignore.virus.scanning.warn.message": "true",
+    "javascript.preferred.runtime.type.id": "node",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "ts.external.directory.path": "D:\\Taskly\\frontend\\node_modules\\typescript\\lib",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-js-predefined-d6986cc7102b-9b0f141eb926-JavaScript-WS-253.32098.39" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="ccc24051-6972-484c-aa02-83b447283734" name="Changes" comment="" />
+      <created>1781009251374</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1781009251374</updated>
+      <workItem from="1781009252767" duration="8000" />
+      <workItem from="1781009276384" duration="4413000" />
+      <workItem from="1781026310798" duration="72000" />
+      <workItem from="1781026396309" duration="3877000" />
+      <workItem from="1781102454317" duration="25552000" />
+      <workItem from="1781186676550" duration="8730000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="github-copilot-workspace">
+    <instructionFileLocations>
+      <option value=".github/instructions" />
+    </instructionFileLocations>
+    <promptFileLocations>
+      <option value=".github/prompts" />
+    </promptFileLocations>
+  </component>
+</project>

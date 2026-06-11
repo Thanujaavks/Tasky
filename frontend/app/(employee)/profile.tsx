@@ -4,13 +4,16 @@ import {
   Text, TouchableOpacity, View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useAuth } from '@/contexts/AuthContext';
-import { api } from '@/services/api';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { logoutThunk, refreshUserThunk } from '@/store/slices/authSlice';
+import { updateProfile } from '@/store/slices/employeeSlice';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 
 export default function Profile() {
-  const { user, logout, refreshUser } = useAuth();
+  const dispatch = useAppDispatch();
+  const user = useAppSelector(s => s.auth.user);
+
   const [name, setName] = useState(user?.name || '');
   const [department, setDepartment] = useState(user?.department || '');
   const [phone, setPhone] = useState(user?.phone || '');
@@ -27,8 +30,8 @@ export default function Profile() {
     }
     setLoading(true);
     try {
-      await api.updateProfile({ name: name.trim(), department, phone });
-      await refreshUser();
+      await dispatch(updateProfile({ name: name.trim(), department, phone })).unwrap();
+      await dispatch(refreshUserThunk()).unwrap();
       Alert.alert('Success', 'Profile updated successfully');
     } catch (err: any) {
       Alert.alert('Error', err.message);
@@ -52,7 +55,7 @@ export default function Profile() {
     }
     setLoading(true);
     try {
-      await api.updateProfile({ current_password: currentPassword, new_password: newPassword });
+      await dispatch(updateProfile({ current_password: currentPassword, new_password: newPassword })).unwrap();
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
@@ -68,7 +71,7 @@ export default function Profile() {
   const handleLogout = () => {
     Alert.alert('Logout', 'Are you sure you want to logout?', [
       { text: 'Cancel', style: 'cancel' },
-      { text: 'Logout', style: 'destructive', onPress: logout },
+      { text: 'Logout', style: 'destructive', onPress: () => dispatch(logoutThunk()) },
     ]);
   };
 

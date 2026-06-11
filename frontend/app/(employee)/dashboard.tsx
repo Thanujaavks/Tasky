@@ -4,35 +4,36 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useAuth } from '@/contexts/AuthContext';
-import { api } from '@/services/api';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { logoutThunk } from '@/store/slices/authSlice';
+import { fetchStats, fetchTasks } from '@/store/slices/taskSlice';
 import { StatCard } from '@/components/ui/StatCard';
 import { TaskCard } from '@/components/TaskCard';
-import { Task, TaskStats } from '@/types';
 
 export default function EmployeeDashboard() {
-  const { user, logout } = useAuth();
+  const dispatch = useAppDispatch();
   const router = useRouter();
-  const [stats, setStats] = useState<TaskStats | null>(null);
-  const [tasks, setTasks] = useState<Task[]>([]);
+
+  const user = useAppSelector(s => s.auth.user);
+  const stats = useAppSelector(s => s.tasks.stats);
+  const activeTasks = useAppSelector(s => s.tasks.tasks);
+
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
   const loadData = useCallback(async () => {
     try {
-      const [statsRes, tasksRes] = await Promise.all([
-        api.getStats(),
-        api.getTasks({ status: 'in_progress' }),
+      await Promise.all([
+        dispatch(fetchStats()).unwrap(),
+        dispatch(fetchTasks({ status: 'in_progress' })).unwrap(),
       ]);
-      setStats(statsRes.stats);
-      setTasks(tasksRes.tasks.slice(0, 5));
     } catch (err: any) {
       Alert.alert('Error', err.message);
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
-  }, []);
+  }, [dispatch]);
 
   useEffect(() => { loadData(); }, [loadData]);
 
@@ -44,7 +45,7 @@ export default function EmployeeDashboard() {
   const handleLogout = () => {
     Alert.alert('Logout', 'Are you sure?', [
       { text: 'Cancel', style: 'cancel' },
-      { text: 'Logout', style: 'destructive', onPress: logout },
+      { text: 'Logout', style: 'destructive', onPress: () => dispatch(logoutThunk()) },
     ]);
   };
 
@@ -129,14 +130,14 @@ export default function EmployeeDashboard() {
                 <Text className="text-emerald-600 text-sm font-medium">See all →</Text>
               </TouchableOpacity>
             </View>
-            {tasks.length === 0 ? (
+            {activeTasks.length === 0 ? (
               <View className="bg-white dark:bg-gray-800 rounded-2xl p-8 items-center">
                 <Text className="text-4xl mb-3">🎉</Text>
                 <Text className="font-semibold text-gray-700 dark:text-gray-300 mb-1">All caught up!</Text>
                 <Text className="text-sm text-gray-400">No tasks in progress</Text>
               </View>
             ) : (
-              tasks.map(task => (
+              activeTasks.slice(0, 5).map(task => (
                 <TaskCard
                   key={task.id}
                   task={task}

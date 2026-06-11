@@ -1,17 +1,22 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator, Alert, ScrollView, Text, TextInput, TouchableOpacity, View,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { api } from '@/services/api';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { fetchEmployee, updateEmployee } from '@/store/slices/employeeSlice';
+import { fetchTasks } from '@/store/slices/taskSlice';
 import { TaskCard } from '@/components/TaskCard';
-import { User, Task } from '@/types';
+import { Task } from '@/types';
 
 export default function EmployeeDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
+  const dispatch = useAppDispatch();
   const router = useRouter();
-  const [employee, setEmployee] = useState<User | null>(null);
+
+  const employee = useAppSelector(s => s.employees.currentEmployee);
+
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
@@ -20,27 +25,40 @@ export default function EmployeeDetail() {
   const [phone, setPhone] = useState('');
   const [saving, setSaving] = useState(false);
 
+  const initialized = useRef(false);
+
   useEffect(() => {
     Promise.all([
-      api.getEmployee(Number(id)),
-      api.getTasks({ assigned_to: id }),
-    ]).then(([empRes, taskRes]) => {
-      const emp = empRes.employee;
-      setEmployee(emp);
-      setName(emp.name);
-      setDepartment(emp.department || '');
-      setPhone(emp.phone || '');
-      setTasks(taskRes.tasks);
+      dispatch(fetchEmployee(Number(id))).unwrap(),
+      dispatch(fetchTasks({ assigned_to: id })).unwrap(),
+    ]).then(([emp, taskList]) => {
+      setTasks(taskList);
     }).catch((err: any) => Alert.alert('Error', err.message))
       .finally(() => setLoading(false));
-  }, [id]);
+  }, [id, dispatch]);
+
+  useEffect(() => {
+    if (employee && !initialized.current) {
+      setName(employee.name);
+      setDepartment(employee.department || '');
+      setPhone(employee.phone || '');
+      initialized.current = true;
+    }
+  }, [employee]);
+
+  const handleStartEditing = () => {
+    if (employee) {
+      setName(employee.name);
+      setDepartment(employee.department || '');
+      setPhone(employee.phone || '');
+    }
+    setEditing(true);
+  };
 
   const handleSave = async () => {
     setSaving(true);
     try {
-      await api.updateEmployee(Number(id), { name, department, phone });
-      const res = await api.getEmployee(Number(id));
-      setEmployee(res.employee);
+      await dispatch(updateEmployee({ id: Number(id), data: { name, department, phone } })).unwrap();
       setEditing(false);
       Alert.alert('Success', 'Employee updated');
     } catch (err: any) {
@@ -70,7 +88,7 @@ export default function EmployeeDetail() {
           <Text className="text-blue-600">← Back</Text>
         </TouchableOpacity>
         <Text className="font-bold text-gray-900 dark:text-white">Employee</Text>
-        <TouchableOpacity onPress={() => setEditing(e => !e)}>
+        <TouchableOpacity onPress={editing ? () => setEditing(false) : handleStartEditing}>
           <Text className="text-blue-600 text-sm font-medium">{editing ? 'Cancel' : 'Edit'}</Text>
         </TouchableOpacity>
       </View>

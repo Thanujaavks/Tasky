@@ -5,9 +5,9 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { api } from '@/services/api';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { fetchTasks } from '@/store/slices/taskSlice';
 import { TaskCard } from '@/components/TaskCard';
-import { Task } from '@/types';
 
 const FILTERS = [
   { label: 'All', value: '' },
@@ -17,27 +17,29 @@ const FILTERS = [
 ];
 
 export default function EmployeeTasks() {
+  const dispatch = useAppDispatch();
   const router = useRouter();
-  const [tasks, setTasks] = useState<Task[]>([]);
+
+  const tasks = useAppSelector(s => s.tasks.tasks);
+
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [statusFilter, setStatusFilter] = useState('');
   const [search, setSearch] = useState('');
 
   const loadTasks = useCallback(async () => {
+    const params: Record<string, string> = {};
+    if (statusFilter) params.status = statusFilter;
+    if (search.trim()) params.search = search.trim();
     try {
-      const params: Record<string, string> = {};
-      if (statusFilter) params.status = statusFilter;
-      if (search.trim()) params.search = search.trim();
-      const res = await api.getTasks(params);
-      setTasks(res.tasks);
+      await dispatch(fetchTasks(params)).unwrap();
     } catch (err: any) {
       Alert.alert('Error', err.message);
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [statusFilter, search]);
+  }, [dispatch, statusFilter, search]);
 
   useEffect(() => {
     const t = setTimeout(loadTasks, search ? 400 : 0);

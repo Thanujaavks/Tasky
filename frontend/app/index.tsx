@@ -1,10 +1,16 @@
 import React, { useEffect } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import { Redirect } from 'expo-router';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { restoreSession } from '@/store/slices/authSlice';
 
 export default function Index() {
-  const { user, isLoading } = useAuth();
+  const dispatch = useAppDispatch();
+  const { user, isLoading } = useAppSelector(s => s.auth);
+
+  useEffect(() => {
+    dispatch(restoreSession());
+  }, [dispatch]);
 
   if (isLoading) {
     return (

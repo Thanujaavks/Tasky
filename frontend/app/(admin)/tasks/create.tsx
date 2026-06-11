@@ -5,28 +5,32 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { api } from '@/services/api';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { createTask } from '@/store/slices/taskSlice';
+import { fetchEmployees } from '@/store/slices/employeeSlice';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { DatePicker } from '@/components/ui/DatePicker';
-import { User } from '@/types';
 
 const PRIORITIES = ['low', 'medium', 'high'] as const;
 
 export default function CreateTask() {
+  const dispatch = useAppDispatch();
   const router = useRouter();
+
+  const employees = useAppSelector(s => s.employees.employees);
+
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [priority, setPriority] = useState<'low' | 'medium' | 'high'>('medium');
   const [dueDate, setDueDate] = useState('');
   const [assignedTo, setAssignedTo] = useState<number | null>(null);
-  const [employees, setEmployees] = useState<User[]>([]);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    api.getEmployees().then(r => setEmployees(r.employees)).catch(() => {});
-  }, []);
+    dispatch(fetchEmployees());
+  }, [dispatch]);
 
   const validate = () => {
     const e: Record<string, string> = {};
@@ -39,13 +43,13 @@ export default function CreateTask() {
     if (!validate()) return;
     setLoading(true);
     try {
-      await api.createTask({
+      await dispatch(createTask({
         title: title.trim(),
         description: description.trim() || undefined,
         priority,
         due_date: dueDate || undefined,
         assigned_to: assignedTo || undefined,
-      });
+      })).unwrap();
       Alert.alert('Success', 'Task created successfully', [
         { text: 'OK', onPress: () => router.back() },
       ]);
@@ -87,7 +91,6 @@ export default function CreateTask() {
             error={errors.title}
           />
 
-          {/* Description */}
           <Input
             label="Description"
             placeholder="Describe the task..."

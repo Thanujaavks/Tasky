@@ -5,9 +5,9 @@ import {
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { api } from '@/services/api';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { fetchTask, updateTaskStatus, addComment } from '@/store/slices/taskSlice';
 import { Badge } from '@/components/ui/Badge';
-import { Task } from '@/types';
 
 const STATUS_OPTIONS = [
   { value: 'pending', label: '⏳ Pending', color: 'border-amber-400 bg-amber-50' },
@@ -17,32 +17,28 @@ const STATUS_OPTIONS = [
 
 export default function EmployeeTaskDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
+  const dispatch = useAppDispatch();
   const router = useRouter();
-  const [task, setTask] = useState<Task | null>(null);
+
+  const task = useAppSelector(s => s.tasks.currentTask);
+
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
   const [comment, setComment] = useState('');
   const [submittingComment, setSubmittingComment] = useState(false);
 
-  const loadTask = async () => {
-    try {
-      const res = await api.getTask(Number(id));
-      setTask(res.task);
-    } catch (err: any) {
-      Alert.alert('Error', err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => { loadTask(); }, [id]);
+  useEffect(() => {
+    dispatch(fetchTask(Number(id)))
+      .unwrap()
+      .catch((err: any) => Alert.alert('Error', err.message))
+      .finally(() => setLoading(false));
+  }, [id, dispatch]);
 
   const handleStatusChange = async (newStatus: string) => {
     if (!task || task.status === newStatus) return;
     setUpdating(true);
     try {
-      await api.updateTaskStatus(Number(id), newStatus);
-      setTask(prev => prev ? { ...prev, status: newStatus as any } : prev);
+      await dispatch(updateTaskStatus({ id: Number(id), status: newStatus })).unwrap();
       Alert.alert('Updated', `Status changed to ${newStatus.replace('_', ' ')}`);
     } catch (err: any) {
       Alert.alert('Error', err.message);
@@ -55,9 +51,8 @@ export default function EmployeeTaskDetail() {
     if (!comment.trim()) return;
     setSubmittingComment(true);
     try {
-      await api.addComment(Number(id), comment.trim());
+      await dispatch(addComment({ id: Number(id), comment: comment.trim() })).unwrap();
       setComment('');
-      loadTask();
     } catch (err: any) {
       Alert.alert('Error', err.message);
     } finally {
