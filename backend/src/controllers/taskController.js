@@ -219,7 +219,7 @@ const getStats = async (req, res) => {
         SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) AS pending,
         SUM(CASE WHEN status = 'in_progress' THEN 1 ELSE 0 END) AS in_progress,
         SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) AS completed,
-        SUM(CASE WHEN priority = 'high' THEN 1 ELSE 0 END) AS high_priority,
+        SUM(CASE WHEN priority = 'high' THEN 1 ELSE 0 END) AS \`high_priority\`,
         SUM(CASE WHEN due_date < CURDATE() AND status != 'completed' THEN 1 ELSE 0 END) AS overdue
        FROM tasks ${whereClause}`,
       params
