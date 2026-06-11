@@ -101,7 +101,7 @@ export default function AdminDashboard() {
           <View className="mb-4">
             <View className="flex-row items-center justify-between mb-3">
               <Text className="text-base font-bold text-gray-900 dark:text-white">Active Tasks</Text>
-              <TouchableOpacity onPress={() => router.push('/(admin)/tasks/index')}>
+              <TouchableOpacity onPress={() => router.push('/(admin)/tasks')}>
                 <Text className="text-blue-600 text-sm font-medium">See all →</Text>
               </TouchableOpacity>
             </View>
@@ -127,7 +127,7 @@ export default function AdminDashboard() {
             <View className="mb-6">
               <View className="flex-row items-center justify-between mb-3">
                 <Text className="text-base font-bold text-gray-900 dark:text-white">Team Performance</Text>
-                <TouchableOpacity onPress={() => router.push('/(admin)/employees/index')}>
+                <TouchableOpacity onPress={() => router.push('/(admin)/employees')}>
                   <Text className="text-blue-600 text-sm font-medium">See all →</Text>
                 </TouchableOpacity>
               </View>

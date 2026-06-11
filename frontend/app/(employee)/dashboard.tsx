@@ -108,7 +108,7 @@ export default function EmployeeDashboard() {
           {/* Alerts */}
           {stats && stats.overdue > 0 && (
             <TouchableOpacity
-              onPress={() => router.push('/(employee)/tasks/index')}
+              onPress={() => router.push('/(employee)/tasks')}
               className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl p-4 mb-4 flex-row items-center gap-3"
             >
               <Text className="text-2xl">⚠️</Text>
@@ -125,7 +125,7 @@ export default function EmployeeDashboard() {
           <View className="mb-4">
             <View className="flex-row items-center justify-between mb-3">
               <Text className="text-base font-bold text-gray-900 dark:text-white">In Progress</Text>
-              <TouchableOpacity onPress={() => router.push('/(employee)/tasks/index')}>
+              <TouchableOpacity onPress={() => router.push('/(employee)/tasks')}>
                 <Text className="text-emerald-600 text-sm font-medium">See all →</Text>
               </TouchableOpacity>
             </View>
