@@ -1,59 +1,107 @@
 import React from 'react';
 import { Tabs } from 'expo-router';
-import { Text, View } from 'react-native';
+import { View, Platform, ColorValue } from 'react-native';
 import { Redirect } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
+import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-function TabIcon({ emoji, label, focused }: { emoji: string; label: string; focused: boolean }) {
+type IoniconsName = React.ComponentProps<typeof Ionicons>['name'];
+
+function TabIcon({
+  name,
+  focused,
+  color,
+}: {
+  name: IoniconsName;
+  focused: boolean;
+  color: ColorValue;
+}) {
   return (
-    <View className="items-center pt-1">
-      <Text className={`text-xl ${focused ? 'opacity-100' : 'opacity-50'}`}>{emoji}</Text>
-      <Text className={`text-xs mt-0.5 ${focused ? 'text-blue-600 font-semibold' : 'text-gray-400'}`}>{label}</Text>
+    <View
+      style={{
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingHorizontal: 16,
+        paddingVertical: 6,
+        borderRadius: 20,
+        backgroundColor: focused ? '#EFF6FF' : 'transparent',
+        minWidth: 56,
+      }}
+    >
+      <Ionicons name={name} size={22} color={color} />
     </View>
   );
 }
 
 export default function AdminLayout() {
   const { user } = useAuth();
+  const insets = useSafeAreaInsets();
+
   if (!user || user.role !== 'admin') return <Redirect href="/(auth)/login" />;
+
+  const tabBarHeight = 56 + (Platform.OS === 'ios' ? insets.bottom : 8);
 
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarStyle: {
-          height: 64,
-          paddingBottom: 8,
-          paddingTop: 4,
-          backgroundColor: 'white',
-          borderTopColor: '#f1f5f9',
-          elevation: 8,
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: -2 },
-          shadowOpacity: 0.05,
-          shadowRadius: 8,
+        tabBarShowLabel: true,
+        tabBarActiveTintColor: '#2563EB',
+        tabBarInactiveTintColor: '#94A3B8',
+        tabBarLabelStyle: {
+          fontSize: 11,
+          fontWeight: '600',
+          marginTop: 2,
         },
-        tabBarShowLabel: false,
+        tabBarStyle: {
+          height: tabBarHeight,
+          paddingTop: 6,
+          paddingBottom: Platform.OS === 'ios' ? insets.bottom : 8,
+          backgroundColor: '#FFFFFF',
+          borderTopWidth: 1,
+          borderTopColor: '#F1F5F9',
+          elevation: 12,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: -3 },
+          shadowOpacity: 0.08,
+          shadowRadius: 10,
+        },
+        tabBarItemStyle: {
+          paddingTop: 2,
+        },
       }}
     >
       <Tabs.Screen
         name="dashboard"
-        options={{ tabBarIcon: ({ focused }) => <TabIcon emoji="📊" label="Dashboard" focused={focused} /> }}
+        options={{
+          title: 'Dashboard',
+          tabBarIcon: ({ focused, color }) => (
+            <TabIcon name={focused ? 'grid' : 'grid-outline'} focused={focused} color={color} />
+          ),
+        }}
       />
       <Tabs.Screen
         name="tasks/index"
-        options={{ tabBarIcon: ({ focused }) => <TabIcon emoji="📋" label="Tasks" focused={focused} /> }}
+        options={{
+          title: 'Tasks',
+          tabBarIcon: ({ focused, color }) => (
+            <TabIcon name={focused ? 'checkbox' : 'checkbox-outline'} focused={focused} color={color} />
+          ),
+        }}
       />
       <Tabs.Screen
         name="employees/index"
-        options={{ tabBarIcon: ({ focused }) => <TabIcon emoji="👥" label="Team" focused={focused} /> }}
+        options={{
+          title: 'Team',
+          tabBarIcon: ({ focused, color }) => (
+            <TabIcon name={focused ? 'people' : 'people-outline'} focused={focused} color={color} />
+          ),
+        }}
       />
-      <Tabs.Screen
-        name="tasks/create"    options={{ href: null }} />
-      <Tabs.Screen
-        name="tasks/[id]"      options={{ href: null }} />
-      <Tabs.Screen
-        name="employees/[id]"  options={{ href: null }} />
+      <Tabs.Screen name="tasks/create"   options={{ href: null }} />
+      <Tabs.Screen name="tasks/[id]"     options={{ href: null }} />
+      <Tabs.Screen name="employees/[id]" options={{ href: null }} />
     </Tabs>
   );
 }
