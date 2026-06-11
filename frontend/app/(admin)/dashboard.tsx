@@ -4,37 +4,37 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useAuth } from '@/contexts/AuthContext';
-import { api } from '@/services/api';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { logoutThunk } from '@/store/slices/authSlice';
+import { fetchStats, fetchTasks } from '@/store/slices/taskSlice';
 import { StatCard } from '@/components/ui/StatCard';
 import { TaskCard } from '@/components/TaskCard';
-import { EmployeeStats, Task, TaskStats } from '@/types';
 
 export default function AdminDashboard() {
-  const { user, logout } = useAuth();
+  const dispatch = useAppDispatch();
   const router = useRouter();
-  const [stats, setStats] = useState<TaskStats | null>(null);
-  const [employeeStats, setEmployeeStats] = useState<EmployeeStats[]>([]);
-  const [recentTasks, setRecentTasks] = useState<Task[]>([]);
+
+  const user = useAppSelector(s => s.auth.user);
+  const stats = useAppSelector(s => s.tasks.stats);
+  const employeeStats = useAppSelector(s => s.tasks.employeeStats);
+  const recentTasks = useAppSelector(s => s.tasks.tasks);
+
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
   const loadData = useCallback(async () => {
     try {
-      const [statsRes, tasksRes] = await Promise.all([
-        api.getStats(),
-        api.getTasks({ status: 'in_progress' }),
+      await Promise.all([
+        dispatch(fetchStats()).unwrap(),
+        dispatch(fetchTasks({ status: 'in_progress' })).unwrap(),
       ]);
-      setStats(statsRes.stats);
-      setEmployeeStats(statsRes.employeeStats || []);
-      setRecentTasks(tasksRes.tasks.slice(0, 5));
     } catch (err: any) {
       Alert.alert('Error', err.message);
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
-  }, []);
+  }, [dispatch]);
 
   useEffect(() => { loadData(); }, [loadData]);
 
@@ -46,7 +46,7 @@ export default function AdminDashboard() {
   const handleLogout = () => {
     Alert.alert('Logout', 'Are you sure you want to logout?', [
       { text: 'Cancel', style: 'cancel' },
-      { text: 'Logout', style: 'destructive', onPress: logout },
+      { text: 'Logout', style: 'destructive', onPress: () => dispatch(logoutThunk()) },
     ]);
   };
 
@@ -111,7 +111,7 @@ export default function AdminDashboard() {
                 <Text className="text-gray-500 dark:text-gray-400">No active tasks right now</Text>
               </View>
             ) : (
-              recentTasks.map(task => (
+              recentTasks.slice(0, 5).map(task => (
                 <TaskCard
                   key={task.id}
                   task={task}
@@ -133,7 +133,7 @@ export default function AdminDashboard() {
               </View>
               {employeeStats.slice(0, 4).map(emp => {
                 const completion = emp.total_tasks > 0
-                  ? Math.round((emp.completed / emp.total_tasks) * 100) : 0;
+                  ? Math.round((emp.completed_tasks / emp.total_tasks) * 100) : 0;
                 return (
                   <View key={emp.id} className="bg-white dark:bg-gray-800 rounded-2xl p-4 mb-3 shadow-sm">
                     <View className="flex-row items-center justify-between mb-2">
@@ -157,7 +157,7 @@ export default function AdminDashboard() {
                       />
                     </View>
                     <Text className="text-xs text-gray-400 mt-1">
-                      {emp.completed}/{emp.total_tasks} tasks completed
+                      {emp.completed_tasks}/{emp.total_tasks} tasks completed
                     </Text>
                   </View>
                 );

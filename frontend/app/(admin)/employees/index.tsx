@@ -5,13 +5,16 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { api } from '@/services/api';
-import { EmployeeStats } from '@/types';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { fetchEmployees, createEmployee, deleteEmployee } from '@/store/slices/employeeSlice';
 
 export default function AdminEmployees() {
+  const dispatch = useAppDispatch();
   const router = useRouter();
   const scrollRef = useRef<ScrollView>(null);
-  const [employees, setEmployees] = useState<EmployeeStats[]>([]);
+
+  const employees = useAppSelector(s => s.employees.employees);
+
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [search, setSearch] = useState('');
@@ -42,15 +45,14 @@ export default function AdminEmployees() {
 
   const loadEmployees = useCallback(async () => {
     try {
-      const res = await api.getEmployees();
-      setEmployees(res.employees);
+      await dispatch(fetchEmployees()).unwrap();
     } catch (err: any) {
       Alert.alert('Error', err.message);
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
-  }, []);
+  }, [dispatch]);
 
   useEffect(() => { loadEmployees(); }, [loadEmployees]);
 
@@ -71,11 +73,11 @@ export default function AdminEmployees() {
     if (!validateForm()) return;
     setCreating(true);
     try {
-      await api.createEmployee(form);
+      await dispatch(createEmployee(form)).unwrap();
+      await dispatch(fetchEmployees()).unwrap();
       setShowForm(false);
       setForm({ name: '', email: '', password: '', department: '', phone: '' });
       setFormErrors({});
-      loadEmployees();
       Alert.alert('Success', 'Employee created');
     } catch (err: any) {
       Alert.alert('Error', err.message);
@@ -91,8 +93,7 @@ export default function AdminEmployees() {
         text: 'Deactivate', style: 'destructive',
         onPress: async () => {
           try {
-            await api.deleteEmployee(id);
-            setEmployees(prev => prev.filter(e => e.id !== id));
+            await dispatch(deleteEmployee(id)).unwrap();
           } catch (err: any) {
             Alert.alert('Error', err.message ?? 'Failed to deactivate employee');
           }
@@ -227,7 +228,6 @@ export default function AdminEmployees() {
                     </View>
                   </View>
 
-                  {/* Task stats */}
                   <View className="flex-row gap-2 mb-2">
                     {[
                       { label: 'Total', value: emp.total_tasks, color: 'text-gray-700' },
@@ -255,7 +255,6 @@ export default function AdminEmployees() {
                   )}
                 </TouchableOpacity>
 
-                {/* Deactivate button — outside the card's TouchableOpacity to avoid event conflict */}
                 <TouchableOpacity
                   onPress={() => handleDeactivate(emp.id, emp.name)}
                   hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}

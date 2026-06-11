@@ -1,29 +1,33 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator, Alert, KeyboardAvoidingView, Platform,
   ScrollView, Text, TextInput, TouchableOpacity, View,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { api } from '@/services/api';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { fetchTask, updateTask, deleteTask, addComment } from '@/store/slices/taskSlice';
+import { fetchEmployees } from '@/store/slices/employeeSlice';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
-import { Task, User } from '@/types';
 
 const STATUSES = ['pending', 'in_progress', 'completed'] as const;
 const PRIORITIES = ['low', 'medium', 'high'] as const;
 
 export default function AdminTaskDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
+  const dispatch = useAppDispatch();
   const router = useRouter();
-  const [task, setTask] = useState<Task | null>(null);
-  const [employees, setEmployees] = useState<User[]>([]);
+
+  const task = useAppSelector(s => s.tasks.currentTask);
+  const employees = useAppSelector(s => s.employees.employees);
+
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [comment, setComment] = useState('');
 
-  // Edit fields
+  // Local edit form state
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [priority, setPriority] = useState<'low' | 'medium' | 'high'>('medium');
@@ -31,34 +35,48 @@ export default function AdminTaskDetail() {
   const [dueDate, setDueDate] = useState('');
   const [assignedTo, setAssignedTo] = useState<number | null>(null);
 
+  const initialized = useRef(false);
+
   useEffect(() => {
     Promise.all([
-      api.getTask(Number(id)),
-      api.getEmployees(),
-    ]).then(([taskRes, empRes]) => {
-      const t = taskRes.task;
-      setTask(t);
-      setTitle(t.title);
-      setDescription(t.description || '');
-      setPriority(t.priority);
-      setStatus(t.status);
-      setDueDate(t.due_date ? t.due_date.split('T')[0] : '');
-      setAssignedTo(t.assigned_to || null);
-      setEmployees(empRes.employees);
-    }).catch((err: any) => Alert.alert('Error', err.message))
+      dispatch(fetchTask(Number(id))).unwrap(),
+      dispatch(fetchEmployees()).unwrap(),
+    ]).catch((err: any) => Alert.alert('Error', err.message))
       .finally(() => setLoading(false));
-  }, [id]);
+  }, [id, dispatch]);
+
+  // Populate form fields when task first loads
+  useEffect(() => {
+    if (task && !initialized.current) {
+      setTitle(task.title);
+      setDescription(task.description || '');
+      setPriority(task.priority);
+      setStatus(task.status);
+      setDueDate(task.due_date ? task.due_date.split('T')[0] : '');
+      setAssignedTo(task.assigned_to || null);
+      initialized.current = true;
+    }
+  }, [task]);
+
+  const handleStartEditing = () => {
+    if (task) {
+      setTitle(task.title);
+      setDescription(task.description || '');
+      setPriority(task.priority);
+      setStatus(task.status);
+      setDueDate(task.due_date ? task.due_date.split('T')[0] : '');
+      setAssignedTo(task.assigned_to || null);
+    }
+    setEditing(true);
+  };
 
   const handleSave = async () => {
     setSaving(true);
     try {
-      await api.updateTask(Number(id), {
-        title, description, priority, status,
-        due_date: dueDate || null,
-        assigned_to: assignedTo,
-      });
-      const res = await api.getTask(Number(id));
-      setTask(res.task);
+      await dispatch(updateTask({
+        id: Number(id),
+        data: { title, description, priority, status, due_date: dueDate || null, assigned_to: assignedTo },
+      })).unwrap();
       setEditing(false);
       Alert.alert('Success', 'Task updated');
     } catch (err: any) {
@@ -74,8 +92,12 @@ export default function AdminTaskDetail() {
       {
         text: 'Delete', style: 'destructive',
         onPress: async () => {
-          await api.deleteTask(Number(id));
-          router.back();
+          try {
+            await dispatch(deleteTask(Number(id))).unwrap();
+            router.back();
+          } catch (err: any) {
+            Alert.alert('Error', err.message);
+          }
         },
       },
     ]);
@@ -84,10 +106,8 @@ export default function AdminTaskDetail() {
   const handleComment = async () => {
     if (!comment.trim()) return;
     try {
-      await api.addComment(Number(id), comment.trim());
+      await dispatch(addComment({ id: Number(id), comment: comment.trim() })).unwrap();
       setComment('');
-      const res = await api.getTask(Number(id));
-      setTask(res.task);
     } catch (err: any) {
       Alert.alert('Error', err.message);
     }
@@ -115,7 +135,7 @@ export default function AdminTaskDetail() {
               </TouchableOpacity>
             ) : (
               <>
-                <TouchableOpacity onPress={() => setEditing(true)} className="bg-blue-100 dark:bg-blue-900 rounded-lg px-3 py-1.5">
+                <TouchableOpacity onPress={handleStartEditing} className="bg-blue-100 dark:bg-blue-900 rounded-lg px-3 py-1.5">
                   <Text className="text-blue-600 text-sm font-medium">Edit</Text>
                 </TouchableOpacity>
                 <TouchableOpacity onPress={handleDelete} className="bg-red-100 dark:bg-red-900 rounded-lg px-3 py-1.5">
@@ -145,7 +165,6 @@ export default function AdminTaskDetail() {
                   numberOfLines={3}
                 />
 
-                {/* Status selector */}
                 <Text className="text-xs font-semibold text-gray-500 uppercase mb-2">Status</Text>
                 <View className="flex-row gap-2 mb-3">
                   {STATUSES.map(s => (
@@ -161,7 +180,6 @@ export default function AdminTaskDetail() {
                   ))}
                 </View>
 
-                {/* Priority selector */}
                 <Text className="text-xs font-semibold text-gray-500 uppercase mb-2">Priority</Text>
                 <View className="flex-row gap-2 mb-3">
                   {PRIORITIES.map(p => (
@@ -183,7 +201,6 @@ export default function AdminTaskDetail() {
                   placeholderTextColor="#9ca3af"
                 />
 
-                {/* Assign employee */}
                 <Text className="text-xs font-semibold text-gray-500 uppercase mb-2">Assign To</Text>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-3">
                   <TouchableOpacity

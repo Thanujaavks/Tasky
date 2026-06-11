@@ -4,12 +4,15 @@ import {
   Text, TouchableOpacity, View,
 } from 'react-native';
 import { Redirect } from 'expo-router';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { loginThunk } from '@/store/slices/authSlice';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 
 export default function Login() {
-  const { login, user } = useAuth();
+  const dispatch = useAppDispatch();
+  const user = useAppSelector(s => s.auth.user);
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -33,7 +36,7 @@ export default function Login() {
     if (!validate()) return;
     setLoading(true);
     try {
-      await login(email.trim().toLowerCase(), password);
+      await dispatch(loginThunk({ email: email.trim().toLowerCase(), password })).unwrap();
     } catch (err: any) {
       Alert.alert('Login Failed', err.message || 'Invalid credentials');
     } finally {
@@ -93,7 +96,7 @@ export default function Login() {
             placeholder="Your password"
             value={password}
             onChangeText={setPassword}
-            // secureTextEntry={!showPassword}
+            secureTextEntry={!showPassword}
             error={errors.password}
             leftIcon={<Text className="text-lg">🔒</Text>}
             rightIcon={

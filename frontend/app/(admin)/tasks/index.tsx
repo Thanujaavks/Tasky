@@ -5,11 +5,11 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { api } from '@/services/api';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { fetchTasks, deleteTask } from '@/store/slices/taskSlice';
 import { TaskCard } from '@/components/TaskCard';
-import { Task, TaskPriority, TaskStatus } from '@/types';
 
-const STATUS_FILTERS: { label: string; value: string }[] = [
+const STATUS_FILTERS = [
   { label: 'All', value: '' },
   { label: '⏳ Pending', value: 'pending' },
   { label: '⚡ In Progress', value: 'in_progress' },
@@ -24,8 +24,11 @@ const PRIORITY_FILTERS = [
 ];
 
 export default function AdminTasks() {
+  const dispatch = useAppDispatch();
   const router = useRouter();
-  const [tasks, setTasks] = useState<Task[]>([]);
+
+  const tasks = useAppSelector(s => s.tasks.tasks);
+
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [search, setSearch] = useState('');
@@ -33,20 +36,19 @@ export default function AdminTasks() {
   const [priorityFilter, setPriorityFilter] = useState('');
 
   const loadTasks = useCallback(async () => {
+    const params: Record<string, string> = {};
+    if (statusFilter) params.status = statusFilter;
+    if (priorityFilter) params.priority = priorityFilter;
+    if (search.trim()) params.search = search.trim();
     try {
-      const params: Record<string, string> = {};
-      if (statusFilter) params.status = statusFilter;
-      if (priorityFilter) params.priority = priorityFilter;
-      if (search.trim()) params.search = search.trim();
-      const res = await api.getTasks(params);
-      setTasks(res.tasks);
+      await dispatch(fetchTasks(params)).unwrap();
     } catch (err: any) {
       Alert.alert('Error', err.message);
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [statusFilter, priorityFilter, search]);
+  }, [dispatch, statusFilter, priorityFilter, search]);
 
   useEffect(() => {
     const timer = setTimeout(loadTasks, search ? 400 : 0);
@@ -65,8 +67,7 @@ export default function AdminTasks() {
         text: 'Delete', style: 'destructive',
         onPress: async () => {
           try {
-            await api.deleteTask(id);
-            setTasks(prev => prev.filter(t => t.id !== id));
+            await dispatch(deleteTask(id)).unwrap();
           } catch (err: any) { Alert.alert('Error', err.message); }
         },
       },

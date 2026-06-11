@@ -2,7 +2,7 @@ import React from 'react';
 import { Tabs } from 'expo-router';
 import { View, Platform, ColorValue } from 'react-native';
 import { Redirect } from 'expo-router';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAppSelector } from '@/store/hooks';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -35,7 +35,7 @@ function TabIcon({
 }
 
 export default function AdminLayout() {
-  const { user } = useAuth();
+  const user = useAppSelector(s => s.auth.user);
   const insets = useSafeAreaInsets();
 
   if (!user || user.role !== 'admin') return <Redirect href="/(auth)/login" />;
