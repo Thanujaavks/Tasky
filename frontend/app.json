@@ -12,8 +12,9 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#2563eb",
-        "foregroundImage": "./assets/adaptive-icon.png"
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "package": "com.taskly.app"
     },
@@ -25,7 +26,18 @@
       "expo-router",
       [
         "expo-status-bar",
-        { "style": "auto" }
+        {
+          "style": "auto"
+        }
+      ],
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#ffffff",
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 200,
+          "resizeMode": "contain"
+        }
       ]
     ],
     "experiments": {
