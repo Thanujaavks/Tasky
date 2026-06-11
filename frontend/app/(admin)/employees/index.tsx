@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator, Alert, RefreshControl, ScrollView,
   Text, TextInput, TouchableOpacity, View,
@@ -10,6 +10,7 @@ import { EmployeeStats } from '@/types';
 
 export default function AdminEmployees() {
   const router = useRouter();
+  const scrollRef = useRef<ScrollView>(null);
   const [employees, setEmployees] = useState<EmployeeStats[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -17,6 +18,27 @@ export default function AdminEmployees() {
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ name: '', email: '', password: '', department: '', phone: '' });
   const [creating, setCreating] = useState(false);
+  const [formErrors, setFormErrors] = useState<Partial<Record<keyof typeof form, string>>>({});
+
+  const validateForm = () => {
+    const errors: Partial<Record<keyof typeof form, string>> = {};
+    if (!form.name.trim()) errors.name = 'Full name is required';
+    if (!form.email.trim()) {
+      errors.email = 'Email is required';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
+      errors.email = 'Enter a valid email address';
+    }
+    if (!form.password) {
+      errors.password = 'Password is required';
+    } else if (form.password.length < 6) {
+      errors.password = 'Password must be at least 6 characters';
+    }
+    if (form.phone && !/^[+\d\s\-()]{7,20}$/.test(form.phone)) {
+      errors.phone = 'Enter a valid phone number';
+    }
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
 
   const loadEmployees = useCallback(async () => {
     try {
@@ -46,15 +68,13 @@ export default function AdminEmployees() {
     : employees;
 
   const handleCreate = async () => {
-    if (!form.name || !form.email || !form.password) {
-      Alert.alert('Error', 'Name, email and password are required');
-      return;
-    }
+    if (!validateForm()) return;
     setCreating(true);
     try {
       await api.createEmployee(form);
       setShowForm(false);
       setForm({ name: '', email: '', password: '', department: '', phone: '' });
+      setFormErrors({});
       loadEmployees();
       Alert.alert('Success', 'Employee created');
     } catch (err: any) {
@@ -70,8 +90,12 @@ export default function AdminEmployees() {
       {
         text: 'Deactivate', style: 'destructive',
         onPress: async () => {
-          await api.deleteEmployee(id);
-          loadEmployees();
+          try {
+            await api.deleteEmployee(id);
+            setEmployees(prev => prev.filter(e => e.id !== id));
+          } catch (err: any) {
+            Alert.alert('Error', err.message ?? 'Failed to deactivate employee');
+          }
         },
       },
     ]);
@@ -87,12 +111,24 @@ export default function AdminEmployees() {
       <View className="bg-white dark:bg-gray-800 px-4 pt-4 pb-3 border-b border-gray-100 dark:border-gray-700">
         <View className="flex-row items-center justify-between mb-3">
           <Text className="text-xl font-bold text-gray-900 dark:text-white">Team ({employees.length})</Text>
-          <TouchableOpacity
-            onPress={() => setShowForm(f => !f)}
-            className="bg-blue-600 rounded-xl px-3 py-2"
-          >
-            <Text className="text-white text-sm font-semibold">{showForm ? '✕ Cancel' : '+ Add Employee'}</Text>
-          </TouchableOpacity>
+          {showForm ? (
+            <TouchableOpacity
+              onPress={() => { setShowForm(false); setFormErrors({}); }}
+              className="bg-gray-200 dark:bg-gray-600 rounded-xl px-3 py-2"
+            >
+              <Text className="text-gray-700 dark:text-white text-sm font-semibold">✕ Cancel</Text>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity
+              onPress={() => {
+                setShowForm(true);
+                scrollRef.current?.scrollTo({ y: 0, animated: true });
+              }}
+              className="bg-blue-600 rounded-xl px-3 py-2"
+            >
+              <Text className="text-white text-sm font-semibold">+ Add Employee</Text>
+            </TouchableOpacity>
+          )}
         </View>
 
         {/* Search */}
@@ -109,6 +145,7 @@ export default function AdminEmployees() {
       </View>
 
       <ScrollView
+        ref={scrollRef}
         contentContainerStyle={{ padding: 16 }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#2563eb']} />}
         keyboardShouldPersistTaps="handled"
@@ -123,21 +160,31 @@ export default function AdminEmployees() {
               { label: 'Password *', key: 'password', placeholder: 'Secure password', keyboard: 'default' },
               { label: 'Department', key: 'department', placeholder: 'Engineering', keyboard: 'default' },
               { label: 'Phone', key: 'phone', placeholder: '+1-555-0100', keyboard: 'phone-pad' },
-            ].map(field => (
-              <View key={field.key} className="mb-3">
-                <Text className="text-xs font-medium text-gray-500 mb-1">{field.label}</Text>
-                <TextInput
-                  value={form[field.key as keyof typeof form]}
-                  onChangeText={v => setForm(f => ({ ...f, [field.key]: v }))}
-                  placeholder={field.placeholder}
-                  placeholderTextColor="#9ca3af"
-                  keyboardType={field.keyboard as any}
-                  secureTextEntry={field.key === 'password'}
-                  autoCapitalize="none"
-                  className="bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl px-3 py-2.5 text-sm text-gray-900 dark:text-white"
-                />
-              </View>
-            ))}
+            ].map(field => {
+              const fieldKey = field.key as keyof typeof form;
+              const error = formErrors[fieldKey];
+              return (
+                <View key={field.key} className="mb-3">
+                  <Text className="text-xs font-medium text-gray-500 mb-1">{field.label}</Text>
+                  <TextInput
+                    value={form[fieldKey]}
+                    onChangeText={v => {
+                      setForm(f => ({ ...f, [field.key]: v }));
+                      if (error) setFormErrors(e => ({ ...e, [field.key]: undefined }));
+                    }}
+                    placeholder={field.placeholder}
+                    placeholderTextColor="#9ca3af"
+                    keyboardType={field.keyboard as any}
+                    secureTextEntry={field.key === 'password'}
+                    autoCapitalize="none"
+                    className={`bg-gray-50 dark:bg-gray-700 border rounded-xl px-3 py-2.5 text-sm text-gray-900 dark:text-white ${error ? 'border-red-400' : 'border-gray-200 dark:border-gray-600'}`}
+                  />
+                  {error && (
+                    <Text className="text-xs text-red-500 mt-1">{error}</Text>
+                  )}
+                </View>
+              );
+            })}
             <TouchableOpacity
               onPress={handleCreate}
               disabled={creating}
@@ -157,17 +204,16 @@ export default function AdminEmployees() {
         ) : (
           filtered.map(emp => {
             const completion = emp.total_tasks > 0
-              ? Math.round((emp.completed / emp.total_tasks) * 100) : 0;
+              ? Math.round((emp.completed_tasks / emp.total_tasks) * 100) : 0;
             return (
-              <TouchableOpacity
-                key={emp.id}
-                onPress={() => router.push(`/(admin)/employees/${emp.id}`)}
-                className="bg-white dark:bg-gray-800 rounded-2xl p-4 mb-3 shadow-sm"
-                activeOpacity={0.7}
-              >
-                <View className="flex-row items-center justify-between mb-3">
-                  <View className="flex-row items-center gap-3 flex-1">
-                    <View className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 items-center justify-center bg-blue-500">
+              <View key={emp.id} className="mb-3" style={{ position: 'relative' }}>
+                <TouchableOpacity
+                  onPress={() => router.push(`/(admin)/employees/${emp.id}`)}
+                  className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm"
+                  activeOpacity={0.7}
+                >
+                  <View className="flex-row items-center mb-3" style={{ paddingRight: 32 }}>
+                    <View className="w-12 h-12 rounded-full items-center justify-center bg-blue-500 mr-3">
                       <Text className="text-white text-lg font-bold">
                         {emp.name.charAt(0).toUpperCase()}
                       </Text>
@@ -180,41 +226,44 @@ export default function AdminEmployees() {
                       )}
                     </View>
                   </View>
-                  <TouchableOpacity
-                    onPress={() => handleDeactivate(emp.id, emp.name)}
-                    className="p-2"
-                  >
-                    <Text className="text-gray-400">⋮</Text>
-                  </TouchableOpacity>
-                </View>
 
-                {/* Task stats */}
-                <View className="flex-row gap-2 mb-2">
-                  {[
-                    { label: 'Total', value: emp.total_tasks, color: 'text-gray-700' },
-                    { label: 'Done', value: emp.completed, color: 'text-green-600' },
-                    { label: 'Active', value: emp.in_progress, color: 'text-blue-600' },
-                    { label: 'Pending', value: emp.pending, color: 'text-amber-600' },
-                  ].map(s => (
-                    <View key={s.label} className="flex-1 bg-gray-50 dark:bg-gray-700 rounded-lg p-2 items-center">
-                      <Text className={`text-base font-bold ${s.color}`}>{s.value}</Text>
-                      <Text className="text-xs text-gray-400">{s.label}</Text>
-                    </View>
-                  ))}
-                </View>
+                  {/* Task stats */}
+                  <View className="flex-row gap-2 mb-2">
+                    {[
+                      { label: 'Total', value: emp.total_tasks, color: 'text-gray-700' },
+                      { label: 'Done', value: emp.completed_tasks, color: 'text-green-600' },
+                      { label: 'Active', value: emp.in_progress_tasks, color: 'text-blue-600' },
+                      { label: 'Pending', value: emp.pending_tasks, color: 'text-amber-600' },
+                    ].map(s => (
+                      <View key={s.label} className="flex-1 bg-gray-50 dark:bg-gray-700 rounded-lg p-2 items-center">
+                        <Text className={`text-base font-bold ${s.color}`}>{s.value}</Text>
+                        <Text className="text-xs text-gray-400">{s.label}</Text>
+                      </View>
+                    ))}
+                  </View>
 
-                {emp.total_tasks > 0 && (
-                  <>
-                    <View className="flex-row items-center justify-between mb-1">
-                      <Text className="text-xs text-gray-400">Completion</Text>
-                      <Text className="text-xs font-semibold text-blue-600">{completion}%</Text>
-                    </View>
-                    <View className="bg-gray-100 dark:bg-gray-700 rounded-full h-1.5">
-                      <View className="bg-blue-500 rounded-full h-1.5" style={{ width: `${completion}%` }} />
-                    </View>
-                  </>
-                )}
-              </TouchableOpacity>
+                  {emp.total_tasks > 0 && (
+                    <>
+                      <View className="flex-row items-center justify-between mb-1">
+                        <Text className="text-xs text-gray-400">Completion</Text>
+                        <Text className="text-xs font-semibold text-blue-600">{completion}%</Text>
+                      </View>
+                      <View className="bg-gray-100 dark:bg-gray-700 rounded-full h-1.5">
+                        <View className="bg-blue-500 rounded-full h-1.5" style={{ width: `${completion}%` }} />
+                      </View>
+                    </>
+                  )}
+                </TouchableOpacity>
+
+                {/* Deactivate button — outside the card's TouchableOpacity to avoid event conflict */}
+                <TouchableOpacity
+                  onPress={() => handleDeactivate(emp.id, emp.name)}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  style={{ position: 'absolute', top: 12, right: 12, padding: 8 }}
+                >
+                  <Text className="text-gray-400 text-lg">⋮</Text>
+                </TouchableOpacity>
+              </View>
             );
           })
         )}

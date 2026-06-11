@@ -11,7 +11,7 @@ const getAllEmployees = async (req, res) => {
         SUM(CASE WHEN t.status = 'pending' THEN 1 ELSE 0 END) AS pending_tasks
       FROM users u
       LEFT JOIN tasks t ON t.assigned_to = u.id
-      WHERE u.role = 'employee'
+      WHERE u.role = 'employee' AND u.is_active = 1
       GROUP BY u.id
       ORDER BY u.name ASC`
     );

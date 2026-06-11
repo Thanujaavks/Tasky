@@ -49,9 +49,9 @@ export interface TaskStats {
 
 export interface EmployeeStats extends User {
   total_tasks: number;
-  completed: number;
-  in_progress: number;
-  pending: number;
+  completed_tasks: number;
+  in_progress_tasks: number;
+  pending_tasks: number;
 }
 
 export type TaskStatus = 'pending' | 'in_progress' | 'completed';

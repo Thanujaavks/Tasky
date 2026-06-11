@@ -8,6 +8,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { api } from '@/services/api';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
+import { DatePicker } from '@/components/ui/DatePicker';
 import { User } from '@/types';
 
 const PRIORITIES = ['low', 'medium', 'high'] as const;
@@ -30,7 +31,6 @@ export default function CreateTask() {
   const validate = () => {
     const e: Record<string, string> = {};
     if (!title.trim()) e.title = 'Title is required';
-    if (dueDate && !/^\d{4}-\d{2}-\d{2}$/.test(dueDate)) e.dueDate = 'Use YYYY-MM-DD format';
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -117,13 +117,10 @@ export default function CreateTask() {
             </View>
           </View>
 
-          <Input
+          <DatePicker
             label="Due Date"
-            placeholder="YYYY-MM-DD"
             value={dueDate}
-            onChangeText={setDueDate}
-            error={errors.dueDate}
-            leftIcon={<Text>📅</Text>}
+            onChange={setDueDate}
           />
 
           {/* Assign to employee */}
